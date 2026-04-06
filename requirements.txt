@@ -1,0 +1,31 @@
+# ── Core Deep Learning ─────────────────────────────────────
+torch>=2.0.0
+torchvision>=0.15.0
+
+# ── HuggingFace Ecosystem ──────────────────────────────────
+diffusers>=0.25.0
+transformers>=4.35.0
+accelerate>=0.25.0
+
+# ── Image Processing ───────────────────────────────────────
+Pillow>=10.0.0
+opencv-python>=4.8.0
+
+# ── Numerical ──────────────────────────────────────────────
+numpy>=1.24.0
+scipy>=1.10.0
+
+# ── Evaluation Metrics ─────────────────────────────────────
+pytorch-fid>=0.3.0
+open_clip_torch>=2.20.0
+
+# ── Config & Utilities ─────────────────────────────────────
+PyYAML>=6.0
+tqdm>=4.65.0
+einops>=0.7.0
+
+# ── Visualization ──────────────────────────────────────────
+matplotlib>=3.7.0
+
+# ── Optional (Memory Efficiency) ───────────────────────────
+# xformers>=0.0.22  # Uncomment if supported by your CUDA version

@@ -1,0 +1,83 @@
+# ============================================================
+#  CENTRAL CONFIGURATION - Lace Fabric GAN + Diffusion System
+#  Optimized for: 2x NVIDIA RTX A4000 (16 GB VRAM each)
+#  CUDA 13.1 | Ubuntu 24.04
+# ============================================================
+
+project:
+  name: "lace-gan-diffusion"
+  seed: 42
+
+# ── Dataset ─────────────────────────────────────────────────
+data:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  image_size: 256        # 256 for GAN; LoRA uses 512
+  batch_size: 4          # Reduced — other processes are using GPU VRAM
+  num_workers: 4
+
+# ── Stage 1: GAN (train from scratch) ───────────────────────
+stage1_gan:
+  latent_dim: 512
+  ngf: 64                # Reduced to save VRAM (other processes running)
+  ndf: 64
+
+  epochs: 800
+  lr_g: 0.00003          # Conservative LR — prevents NaN
+  lr_d: 0.00003
+  beta1: 0.5
+  beta2: 0.999
+  n_critic: 1
+
+  loss_type: "lsgan"    # lsgan = most stable (hinge gây NaN)
+  lambda_gp: 5.0         # Giảm từ 10 — GP mạnh quá gây explode
+
+  checkpoint_dir: "checkpoints/gan"
+  save_every: 10
+  sample_every: 5
+
+  mixed_precision: false  # Tắt fp16 — fp32 ổn định hơn nhiều
+
+# ── Stage 2: LoRA fine-tuned Stable Diffusion ───────────────
+stage2_diffusion:
+  model_id: "runwayml/stable-diffusion-v1-5"
+
+  # img2img refinement params
+  strength: 0.25
+  guidance_scale: 9.0
+  num_inference_steps: 30    # Giảm steps để nhanh hơn
+
+  # Server đầy VRAM — bật tất cả memory optimizations
+  enable_attention_slicing: true
+  enable_vae_slicing: true
+  enable_cpu_offload: true   # SD offload sang CPU khi không dùng
+
+  # LoRA (set lora_path after training)
+  lora_path: "checkpoints/lora/lace_lora"   # set after LoRA training
+  use_lora: true    # LoRA trained ✓
+
+  output_dir: "outputs/refined"
+
+# ── LoRA Training ────────────────────────────────────────────
+lora:
+  base_model: "runwayml/stable-diffusion-v1-5"
+  data_dir: "data/processed"      # use preprocessed 256x256 images
+  output_dir: "checkpoints/lora/lace_lora"
+  image_size: 512                 # SD works at 512x512
+  batch_size: 4                   # per GPU (use gradient_accumulation)
+  gradient_accumulation: 4        # effective batch = 16
+  num_train_epochs: 100
+  learning_rate: 0.0001
+  lr_scheduler: "cosine"
+  lora_rank: 16                   # LoRA rank (4-64; 16 = good balance)
+  lora_alpha: 32
+  mixed_precision: "fp16"
+  gradient_checkpointing: true
+  prompt_template: "a photo of lace fabric, {}"  # caption template
+
+# ── Inference ────────────────────────────────────────────────
+inference:
+  gan_checkpoint: "checkpoints/gan/best_generator.pth"
+  num_generate: 20
+  output_gan_dir: "outputs/gan_generated"
+  output_final_dir: "outputs/final"

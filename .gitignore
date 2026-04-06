@@ -1,0 +1,8 @@
+checkpoints/
+outputs/
+data/
+__pycache__/
+*.pyc
+*.pth
+*.safetensors
+config_tmp.yaml
