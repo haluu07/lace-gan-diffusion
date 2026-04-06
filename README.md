@@ -235,3 +235,4 @@ Use it in any SD prompt: `"<lace-v1> with floral motifs"`.
 - RAM: ≥ 16 GB
 # lace-gan-diffusion
 # lace-gan-diffusion
+# lace-gan-diffusion
